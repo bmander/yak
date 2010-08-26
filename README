@@ -1,1 +1,30 @@
 A little widget to keep you on track
+
+--== Install ==--
+
+$ sudo python setup.py install
+
+Set your PS1 environment variable in your .bashrc to keep a reminder of what you're doing:
+
+PS1='\w [$(yak status_desc)]$ '
+
+--== Usage ==--
+
+Use 'yak push' to set your teleological task - the thing you're trying to accomplish. As soon as you identify the slightly less teleological task that needs to be completed before you can accomplish the larger task, you 'yak push' that too. Like this:
+
+[None] $ yak push make a sandwich
+[make a sandwich] $ yak push get the peanut butter
+[get the peanut butter] $ 
+
+'yak path' reminds you how you got here
+[get the peanut butter] $ yak path
+2 get peanut butter
+1 make a sandwich
+
+When you're done with your sub-task, just 'yak pop' it off the stack
+
+[get the peanut butter] $ yak pop
+[make a sandwich] $ yak pop
+[None] $
+
+

@@ -159,6 +159,8 @@ def main():
     stack.switch( id )
   elif command=="status":
     print stack.current_task()
+  elif command=="status_desc":
+    print stack.current_task().description
   elif command=="path":
     stack.path()
   else:
