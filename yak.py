@@ -55,12 +55,13 @@ class Stack(object):
 
     if status is None:
       status = Status()
-      session.add( status )
+      self.session.add( status )
 
     return status
 
   def current_task( self ):
-    return self.current_status().current_task
+    current_status = self.current_status()
+    return current_status.current_task if current_status else None
 
   def new(self, description):
     task = Task( description=description )
@@ -74,6 +75,12 @@ class Stack(object):
 
     status.current_task = task
 
+  def todo(self, description):
+    status = self.current_status()
+
+    task = Task( description=description, parent=status.current_task, start=True )
+    self.session.add( task )
+
   def pop(self):
     status = self.current_status()
 
@@ -83,8 +90,15 @@ class Stack(object):
     status.current_task.finished = datetime.now()
     status.current_task = status.current_task.parent
 
+  def path(self):
+    task = self.current_task()
+
+    while task is not None:
+      print task
+      task = task.parent
+
   def list(self):
-    for task in self.session.query(Task).filter(Task.finished != None):
+    for task in self.session.query(Task).filter(Task.finished == None):
       print task
 
   def switch(self, id):
@@ -95,46 +109,63 @@ class Stack(object):
 
     self.current_status().current_task = next_task
 
-if __name__=='__main__':
-
-  metadata = Base.metadata
+def main():
 
   # start database
   yakstack_path = os.path.expanduser("~/.yakstack")
   engine = create_engine('sqlite:///'+yakstack_path, echo=False)
 
   # flesh out database
-  metadata.create_all( engine )
+  Base.metadata.create_all( engine )
 
   # get a session 
   Session = sessionmaker(bind=engine)
   session = Session()
 
-  stack = Stack( session )
-
-  print sys.argv
+  usage = "usage: yak new|push|pop|list|switch|status|todo|path"
 
   if len(sys.argv)<2:
-    print "usage: yak new|push|pop|list|switch"
+    print usage
     exit()
 
+  stack = Stack( session )
   command = sys.argv[1]
 
   if command=="new":
-    if len(sys.argv<3):
+    if len(sys.argv)<3:
       print "usage: yak new task_description"
       exit()
 
     stack.new( " ".join( sys.argv[2:] ) )
-
-  #stack.push( "this is a thing yeah yeah" )
-
-  #stack.pop( )
-
-  #stack.list( )
-
-  #stack.switch( 12 )
-
-  #print stack.current_task()
+  elif command=="push":
+    if len(sys.argv)<3:
+      print "usage: yak push task_description"
+      exit()
+    stack.push( " ".join( sys.argv[2:] ) )
+  elif command=="todo":
+    if len(sys.argv)<3:
+      print "usage: yak todo task_description"
+      exit()
+    stack.todo( " ".join( sys.argv[2:] ) )
+  elif command=="pop":
+    stack.pop( )
+  elif command=="list":
+    stack.list( )
+  elif command=="switch":
+    if len(sys.argv)<3:
+      print "usage: yak switch id"
+      exit()
+    id = int(sys.argv[2])
+    stack.switch( id )
+  elif command=="status":
+    print stack.current_task()
+  elif command=="path":
+    stack.path()
+  else:
+    print usage
+    exit()
 
   session.commit()
+
+if __name__=='__main__':
+  main()
