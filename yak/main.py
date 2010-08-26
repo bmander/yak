@@ -160,7 +160,8 @@ def main():
   elif command=="status":
     print stack.current_task()
   elif command=="status_desc":
-    print stack.current_task().description
+    current_task = stack.current_task()
+    print current_task.description if current_task else ""
   elif command=="path":
     stack.path()
   else:
