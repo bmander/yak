@@ -1,0 +1,4 @@
+build
+yak.egg-info
+dist
+*.swp
